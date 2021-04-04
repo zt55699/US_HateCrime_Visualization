@@ -87,7 +87,7 @@ class Dataset {
         }
         sat_years['columns'] = columns
 
-        console.log(sat_years)
+        //console.log(sat_years)
         this._state_years = sat_years
     }
 
@@ -108,7 +108,7 @@ class Dataset {
     setYear(sYear, eYear){
         this._start_year = sYear
         this._end_year = eYear
-        this._cal_state_totals()
+        //this._cal_state_totals()
         this._cal_state_years()
     }
 
@@ -147,6 +147,22 @@ function convert_line_data(data){
     return new_data
 }
 
+function convert_map_data(data){
+    // [{code:"", name:"", value:{total:, anti_white:, anti_blakc:}},{},{}]
+    var map_d = []
+    data.map(d => {
+        var tem_r = {code:"", name:"", value:{total:0, anti_white:0, anti_black:0, anti_asian:0, anti_jewish:0, anti_islamic:0, anti_arab:0, anti_hispanic:0}}
+        tem_r.code = d.code
+        tem_r.name = d.name.replace(/, ([\w-]+).*/, " $1")
+        var labels = Object.keys(tem_r.value)
+        labels.forEach(l => {
+            tem_r.value[l] = d3.sum(Object.values(d[l]))
+        })
+        map_d.push(tem_r)
+    })
+    
+    return map_d
+}
 
 function get_last_data(data){
     new_data =  {

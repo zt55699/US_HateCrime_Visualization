@@ -39,6 +39,7 @@ class GridMap {
         this._bandwidth = { x: 0, y: 0, hx: 0, hy: 0 };
 
         this._data = null;
+        this._race = null;
         this._chartData = null;
         this._cells_object = null;
         this._field = {
@@ -118,6 +119,23 @@ class GridMap {
         return this;
     }
 
+    update_race(selectedOption){
+        this._race = selectedOption
+        //console.log("Race:", selectedOption)
+        //console.log(this._race)
+        this._container.selectAll("g").remove()
+
+        var raceo = d3.select("#selectButton").node().value
+        this._style.legendTitle = raceo == "All" ? "Total Cases" : ("Total Cases (" + raceo+")")
+        this.render()
+        // this._process();
+        // this._initColors();
+        
+        // this._g = this._container.append("g");
+        // this._renderMap(); 
+
+    }
+
     processMap() {
         this._gridData = this._gridData.filter(d => d.code !== "");
 
@@ -195,6 +213,8 @@ class GridMap {
     _init() {        
         this._contains.data = this._data && this._data.length > 0;
         this._contains.values = this._field.values && this._field.values.length > 0;
+        this._race = convers[d3.select("#selectButton").node().value];
+        //console.log(this._race)
 
         if (!this._contains.data) {
             this._style.showMapLegend = false;
@@ -219,25 +239,29 @@ class GridMap {
         this._showLabel = false;
         this._chartData = this._gridData.map(d => {            
             const datum = this._data.find(_ => _[field.code] === d.code);
-            const values = datum && this._contains.values ? field.values.map(vname => datum[vname]) : [];
+
+          
+            //const values = datum && this._contains.values ? field.values.map(vname => datum[vname]) : [];
+            const values = datum.value
             const r = {
                 col: d.col,
                 row: d.row,
                 code: d.code,
                 state: datum ? datum[field.name] : null,
-                values: values,
+                values: [values[this._race]],
                 total: 0
             };
+            
 
             if (r.state && r.state !== "") this._showLabel = true;
 
             if (datum) {
                 if (field.total !== "")
-                    r.total = datum[field.total];
+                    r.total = values[this._race]
                 else if (values)
-                    r.total = values.reduce((a, b) => a + b);
+                    //r.total = values.reduce((a, b) => a + b);
+                    r.total = values[this._race]
             }
-
             return r;
         })
     }
@@ -606,7 +630,7 @@ class GridMap {
         if (s.length > 0) {
             g.attr("font-weight", "bold")
                 .append("text")
-                .style("fill", "lightgray")
+                .style("fill", "rgb(168, 168, 168)")
                 .attr("font-family", this._style.font)
                 .style("font-weight", "bold")
                 .attr("font-size", "23pt")
@@ -631,7 +655,7 @@ class GridMap {
                 .attr("width", w).attr("height", "1.5em"))
             .call(g => g.append("text")
                 .attr("dy", "3.7em")
-                .style("fill", "lightgray")
+                .style("fill", "rgb(168, 168, 168)")
                 .text(d => d3.format(this._style.shortFormat)(d.floor)));
 
         function sample(ext, segs) {

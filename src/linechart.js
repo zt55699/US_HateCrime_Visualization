@@ -141,7 +141,9 @@ function render_linechart (contselect, raw_data, colors) {
         var vertical = d3.selectAll(".verticalLine")
           .attr("transform", `translate(${x(N_data.dates[i])},0)`);
 
-        var highligt_wdith =15
+        var year_range = d3.extent(data.dates)
+        var num_years = year_range[1]-year_range[0]
+        var highligt_wdith = width/num_years/2.2
         var maskleft=d3.selectAll(".maskleft")
           .transition().duration(mask_latency)
           .attr('x', margin.left)
@@ -342,11 +344,12 @@ function render_linechart (contselect, raw_data, colors) {
 
   var short_data = get_last_data(data)
 
+  svg.selectAll("g.dot").exit().remove()
+
   var dg = svg.selectAll("g.dot")
           .data(short_data.series)
           .enter().append("g")
           .attr("class", "dot")
-
 
   var cg = dg.selectAll("circle")
     .data(short_data.series)
@@ -468,13 +471,13 @@ function render_linechart (contselect, raw_data, colors) {
 
 
       cg
-      .transition()
-      .duration(1000)
-      .style("opacity", function(d){
-        if(lock){ return d.code == lock ? 1 : 0.1}
-        else{return 1}
-        })
-      .attr("cy", function(d,i) { return y(d[selected]); })
+        .transition()
+        .duration(1000)
+        .style("opacity", function(d){
+          if(lock){ return d.code == lock ? 1 : 0.1}
+          else{return 1}
+          })
+        .attr("cy", function(d,i) { return y(d[selected]); })
 
 
     } else if(num_type == "US Total"){
@@ -759,6 +762,7 @@ function render_linechart (contselect, raw_data, colors) {
       selectedOption = hate_type[raw_selectedOption]
       // run the updateChart function with this selected option
       update(selectedOption)
+      grid_map.update_race(selectedOption)
   })
     // When the button is changed, run the updateChart function
   d3.select("#selectButton_us").on("change", function(d) {

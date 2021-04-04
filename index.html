@@ -71,16 +71,20 @@
             .range(d3.schemeTableau10.map(c => color_adjust(c, -30)));
             //.range(["#53A663", "#D87F81", "#AE6387", "#79616F", "#7E9680", "#6AA5A9", "#5D7599"]);
 
-        function render_map_svg(svgselection, states_total){ 
+        function render_map_svg(svgselection, map_data){ 
                 svgselection.selectAll('*').remove();
                 const g = svgselection.append("g").attr("transform", "translate(25,0)");
 
+                var raceo = d3.select("#selectButton").node().value
+                var title = raceo == "All" ? "Total Cases" : ("Total Cases (" + raceo+")")
+        
+
                 const gmap = new GridMap(g)
                     .size([800, 600])
-                    .style({sizeByValue: false, legendTitle: "Total Cases"})
+                    .style({sizeByValue: false, legendTitle: title})
                     .field({ code: "code", name: "name", total: "value" })                
                     .mapGrid(map)
-                    .data(states_total)    
+                    .data(map_data)    
                     .render();
                 //return svg.node()
                 grid_map = gmap
@@ -114,19 +118,14 @@
         function main (){
             //console.log(all_data)
             all_data.setYear(start_year, end_year);
-            var states_total = all_data.get_total_by_states(); 
-            var mapselect = d3.select("#map-container").append("svg")
-                    .attr("class", "us-map")
-                    .attr("font-size", "8pt")
-                    .attr("viewBox", "0 0 800 620"); 
-            render_map_svg(mapselect, states_total)
-
             var states_years = all_data.get_states_years();
-            
+            //console.log(states_years)
+ 
 
+            
             var line_data = convert_line_data(states_years)
             //console.log(typeof(test_data), test_data)
-            console.log("linedata::", line_data)
+            //console.log("linedata::", line_data)
 
 
             var button_op = ["By State","US Total"] 
@@ -151,6 +150,16 @@
             .append('option')
             .text(function (d) { return d; }) // text showed in the menu
             .attr("value", function (d) { return d; }) // corresponding value returned by the button
+
+
+            var map_data = convert_map_data(states_years)
+            //console.log(map_data)
+            //var states_total = all_data.get_total_by_states(); 
+            var mapselect = d3.select("#map-container").append("svg")
+                    .attr("class", "us-map")
+                    .attr("font-size", "8pt")
+                    .attr("viewBox", "0 0 800 620"); 
+            render_map_svg(mapselect, map_data)
 
 
             // color scale for multi-line chart 
@@ -195,10 +204,12 @@
                     start_year = st_year
                     end_year = ed_year
                     all_data.setYear(start_year, end_year)
-                    var states_total = all_data.get_total_by_states()
-                    render_map_svg(svgselection, states_total)       
-
                     var states_years = all_data.get_states_years()
+
+                    var map_data = convert_map_data(states_years)
+                    //var states_total = all_data.get_total_by_states()
+                    render_map_svg(svgselection, map_data)       
+
                     var line_data = convert_line_data(states_years)
                     linechart = render_linechart(trendselect, line_data, colors)
 
