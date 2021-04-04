@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+    <meta charset="utf-8">
+    <title>US Hate Crime Visualization</title>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap" rel="stylesheet">
+        <script src="https://d3js.org/d3.v6.min.js"></script>
+        <script src="src/gridmap.js"></script>
+        <script src="src/linechart.js"></script>
+        <script src="src/piechart.js"></script>
+        <script src="src/dataset.js"></script>
+        <link rel="stylesheet" href="src/range-slider-master/css/rSlider.min.css">
+        <script src="src/range-slider-master/js/rSlider.min.js"></script>
+        <link rel="stylesheet" href="src/layout.css">
+        <!-- Color Scale -->
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    </head>
+    <body style="background-color:rgb(38, 35, 45);text-align:left;">
+        <h1 style="color:white; font-family: 'Quicksand', sans-serif; padding-left: 80px;">
+            2000-2019 US Hate Crime Visualization (Race-Based)
+        </h1>
+        <p style="color:white; font-family: 'Quicksand', sans-serif; padding-left: 80px;font-size: 12px;">* Data source: The Hate Crime Statistics dataset from FBI's Uniform Crime Reporting (UCR) Program.  </p>
+        <div class="grid-container">
+            <div class="Map" id = "map-container" style="padding-top: 40px"></div>
+            <div class="Pie" id = "pie-container"></div>
+
+            <div class="Line" id = "trend-container" style = "padding-left: 20px;"></div>
+            <div class="Slid"id = "slider-container" style = "margin-left: 140px; padding-right: 3%; padding-top: -34px;">
+                <input type="text" id="yearSlider"/>
+            </div>
+            <div class = "Toggle">
+                <!-- Initialize a select button -->
+                <select id="selectButton_us" style="background-color: rgb(38, 35, 45); color: lightgrey; font-size: 17px; font-family: 'Quicksand', sans-serif; border-radius: 4px; border: 1.5px solid darkgray; "></select>
+                <select id="selectButton" style="background-color: rgb(38, 35, 45); color: lightgrey; font-size: 17px; font-family: 'Quicksand', sans-serif; border-radius: 4px; border: 1.5px solid darkgray; "></select>
+            </div>
+            <div class = "Bot">
+                <p >  </p>
+            </div>
+        </div>
+
+    </body>
+
+    <script>
+        // This visualization is focused on annual statistics in reported hate crimes by an offender’s bias against the victim’s perceived race.
+
+        //   return {
+//     y: "% Unemployment",
+//     series: data.map(d => ({
+//       name: d.name.replace(/, ([\w-]+).*/, " $1"),
+//       values: columns.map(k => +d[k])
+//     })),
+//     dates: columns.map(d3.utcParse("%Y-%m"))
+//   };
+
+        var all_data = null
+        var start_year = 2000
+        var end_year = 2019
+        var test_data = null
+        var grid_map = null
+        var linechart = null    //[svg, path]
+        var colors = null       //line chart colors
+        var cells =null     // grid cells
+        var acc_us_data = null
+        const allGroup = ["All", "Anti-Black", "Anti-White", "Anti-Asian", "Anti-Jewish", "Anti-Islamic",  "Anti-Hispanic"]  //"Anti-Arab",
+        const convers = {"All":"total", "Anti-White":"anti_white", "Anti-Black":"anti_black", "Anti-Asian":"anti_asian",
+    "Anti-Jewish": "anti_jewish", "Anti-Islamic":"anti_islamic", "Anti-Arab":"anti_arab", "Anti-Hispanic":"anti_hispanic"}
+        const pie_color = d3.scaleOrdinal()
+            .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
+            .range(d3.schemeTableau10.map(c => color_adjust(c, -30)));
+            //.range(["#53A663", "#D87F81", "#AE6387", "#79616F", "#7E9680", "#6AA5A9", "#5D7599"]);
+
+        function render_map_svg(svgselection, states_total){ 
+                svgselection.selectAll('*').remove();
+                const g = svgselection.append("g").attr("transform", "translate(25,0)");
+
+                const gmap = new GridMap(g)
+                    .size([800, 600])
+                    .style({sizeByValue: false, legendTitle: "Total Cases"})
+                    .field({ code: "code", name: "name", total: "value" })                
+                    .mapGrid(map)
+                    .data(states_total)    
+                    .render();
+                //return svg.node()
+                grid_map = gmap
+        }
+
+
+        async function start(){
+            all_data =  new Dataset("./src/hate_crime.csv")
+            await all_data.init()
+
+
+
+            // var data1 = null
+            // await d3.tsv("/src/unemployment.tsv").then(function(data) {
+            //     data1 = data
+            //     //console.log(data);
+            // });
+            // const columns = data1.columns.slice(1);
+            // test_data =  {
+            //     y: "% Unemployment",
+            //     series: data1.map(d => ({
+            //     name: d.name.replace(/, ([\w-]+).*/, " $1"),
+            //     values: columns.map(k => +d[k])
+            //     })),
+            //     dates: columns.map(d3.utcParse("%Y-%m"))
+            // };
+
+            main()
+        };
+
+        function main (){
+            //console.log(all_data)
+            all_data.setYear(start_year, end_year);
+            var states_total = all_data.get_total_by_states(); 
+            var mapselect = d3.select("#map-container").append("svg")
+                    .attr("class", "us-map")
+                    .attr("font-size", "8pt")
+                    .attr("viewBox", "0 0 800 620"); 
+            render_map_svg(mapselect, states_total)
+
+            var states_years = all_data.get_states_years();
+            
+
+            var line_data = convert_line_data(states_years)
+            //console.log(typeof(test_data), test_data)
+            console.log("linedata::", line_data)
+
+
+            var button_op = ["By State","US Total"] 
+
+            // add the options to the button
+            d3.select("#selectButton_us")
+            .selectAll('myOptions')
+            .data(button_op)
+            .enter()
+            .append('option')
+            .text(function (d) { return d; }) // text showed in the menu
+            .attr("value", function (d) { return d; }) // corresponding value returned by the button
+
+              // List of groups (here I have one group per column)
+           
+
+            // add the options to the button
+            d3.select("#selectButton")
+            .selectAll('myOptions')
+            .data(allGroup)
+            .enter()
+            .append('option')
+            .text(function (d) { return d; }) // text showed in the menu
+            .attr("value", function (d) { return d; }) // corresponding value returned by the button
+
+
+            // color scale for multi-line chart 
+            var states = []
+            var data_arr = line_data.series
+            data_arr.forEach(element => states.push(element.code))
+            colors = d3.scaleOrdinal()
+                        .domain(states)
+                        .range(d3.schemeCategory10)      //d3.schemeTableau10 
+
+            var trendselect = d3.select("#trend-container")
+            linechart = render_linechart(trendselect, line_data, colors)    //[svg, path]
+            //console.log(linechart)
+
+            // donut chart
+            render_pie(line_data)
+
+            var mySlider = new rSlider({
+                target: '#yearSlider',
+                values: [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019],
+                range: true,
+                tooltip: true,
+                scale: true,
+                labels: true,
+                set: [start_year, end_year],
+                onChange: function (values) { var val = values.split(",")
+                                              var st_y = val[0]
+                                              var ed_y = val[1]
+                                              if(st_y!=start_year || ed_y!=end_year){
+                                                update_year(mapselect, trendselect, val[0], val[1], colors)}}
+            });
+            
+
+        }
+
+        start();
+
+
+
+        
+        function update_year(svgselection, trendselect, st_year, ed_year, colors){
+                    start_year = st_year
+                    end_year = ed_year
+                    all_data.setYear(start_year, end_year)
+                    var states_total = all_data.get_total_by_states()
+                    render_map_svg(svgselection, states_total)       
+
+                    var states_years = all_data.get_states_years()
+                    var line_data = convert_line_data(states_years)
+                    linechart = render_linechart(trendselect, line_data, colors)
+
+                    render_pie(line_data)
+                    //var selection = d3.select(".us-map")
+                    //selection.node().append(map_svg())
+                    //console.log(selection)
+            }
+
+
+        // listening on change objects
+        var selected_state = {state: ""}
+        var selected_state2 = {state: ""}
+
+        var line_selected = {
+            pair: [0,1]
+        }
+
+        var lock_line = {state: "", clicked: ""}
+        var river_selected = {pair:[]}
+
+        function state_on_select(state){
+            //d3.select("#selectState").text(state)
+            selected_state.state = state
+            selected_state2.state = state
+        }
+        function no_state_on_select(){
+            //d3.select("#selectState").text("")
+            selected_state.state = ""
+            selected_state2.state = ""
+        }
+
+        function line_on_select(state1, year1){
+            var fire_map = false
+            //line_selected.pair = [0,0]
+            if(JSON.stringify(line_selected.pair) != JSON.stringify([state1, year1])){
+                if(!line_selected.pair){
+                    fire_map = true
+                }
+                else{
+                    if(line_selected.pair[0]!=state1){
+                        fire_map = true
+                    }
+                }
+                line_selected.pair = [state1, year1]
+                //console.log("line: ",state1,year1 )
+            }
+            if(fire_map){
+                grid_map.highlight_a_cell(state1)
+            }
+        }
+        
+        function line_off_select(){
+            grid_map.cancel_hightlight()
+            line_selected.pair = ""
+        }
+
+        function cell_click(cells1,state1){
+            cells = cells1
+            //console.log("lock state!")
+            cells.on("mouseleave", "")
+                 .on("mouseenter", "")
+            
+            //lock line chart
+            lock_line.state = state1
+            
+
+            
+            var unlock_area = d3.selectAll("div").filter(function() {
+                                            var id = d3.select(this).attr('id')
+                                            if(id){
+                                                if(id != "map-container" && id != "slider_container"){return true}
+                                            }else{return false}
+                                            });
+            unlock_area.on("mouseenter", (e, d) => {
+                //console.log("unlock state!")
+                grid_map._attachEvents(cells)
+                unlock_area.on("mouseenter","")
+            });
+
+            var unlock_line_area = d3.selectAll("div").filter(function() {
+                                            var id = d3.select(this).attr('id')
+                                            if(id){
+                                                if(id == "map-container"){return true}
+                                            }else{return false}
+                                            });
+            unlock_line_area.on("mouseenter", (e, d) => {
+                lock_line.state = ""                // unlock
+                unlock_line_area.on("mouseenter","")
+            });
+            
+        }
+
+        // var bodySelection = d3.select("#pie-container");
+
+        // var svgSelection = bodySelection.append("svg")
+        //     .attr("font-size", "9pt")
+        //     .attr("width", 400)
+        //     .attr("height", 300);    
+
+        // var circleSelection = svgSelection.append("circle")
+        //     .attr("cx", 25)
+        //     .attr("cy", 25)
+        //     .attr("r", 25)
+        //     .style("fill", "green");
+        function color_adjust(color, amount) {
+            return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+        }
+
+
+
+                    
+        
+    </script>
+
+</html>
