@@ -77,7 +77,7 @@ function render_linechart (contselect, raw_data, colors) {
         .on("mousemove", moved)
         .on("mouseenter", entered)
         .on("mouseleave", left)
-        .on("click", click_lock);
+
   
     const dot = svg.append("g")
         .attr("display", "none");
@@ -126,8 +126,8 @@ function render_linechart (contselect, raw_data, colors) {
           line_on_select("US", N_data.dates[i])
 
         }else{
-          path.attr("stroke", function(d){if (us_or_state == "US Total"){return us_line_style.color}else {return colors(d.code)}})
-          .style("opacity", d => d === s ? 1 : (us_or_state == "US Total"? 0 : 0.2)).filter(d => d === s).raise()
+          //path.attr("stroke", function(d){if (us_or_state == "US Total"){return us_line_style.color}else {return colors(d.code)}})
+          path.style("opacity", d => d === s ? 1 : (us_or_state == "US Total"? 0 : 0.2)).filter(d => d === s).raise()
           .attr("stroke-width",d => d === s ? stroke_width_thick : stroke_width_thin).filter(d => d === s).raise();
           dot.attr("display", null);
           dot.transition().duration(mask_latency).attr("transform", `translate(${x(N_data.dates[i])},${y(s[race_category][i])})`);
@@ -165,8 +165,8 @@ function render_linechart (contselect, raw_data, colors) {
 
         if(Math.abs(s[race_category][i] - ym) < distance_threshold){
                           //path.attr("stroke", d => d === s ? colors(d.code) : "lightgray").filter(d => d === s).raise();
-          path.attr("stroke", function(d){if (us_or_state == "US Total"){return us_line_style.color}else {return colors(d.code)}})
-            .style("opacity", d => d === s ? 1 : (us_or_state == "US Total"? 0 : 0.2)).filter(d => d === s).raise()
+          //path.attr("stroke", function(d){if (us_or_state == "US Total"){return us_line_style.color}else {return colors(d.code)}})
+          path.style("opacity", d => d === s ? 1 : (us_or_state == "US Total"? 0 : 0.2)).filter(d => d === s).raise()
             .attr("stroke-width",d => d === s ? stroke_width_thick : stroke_width_thin).filter(d => d === s).raise();
           dot.attr("display", null);
           dot.attr("transform", `translate(${x(N_data.dates[i])},${y(s[race_category][i])})`);
@@ -197,8 +197,8 @@ function render_linechart (contselect, raw_data, colors) {
           .style("mix-blend-mode", null);
         return}
       else{
-        path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))
-        .style("opacity", 1)
+        //path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))
+        path.style("opacity", 1)
         .attr("stroke-width", stroke_width_thin);
       //dot.attr("display", null);
       //cg.style("opacity", 0.1);
@@ -213,10 +213,11 @@ function render_linechart (contselect, raw_data, colors) {
             .attr("display", "none");
           d3.selectAll(".verticalLine")
             .attr("display", "none"); 
+            line_off_select()
       }
       else{
-        path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
-          .style("opacity", 1)
+        //path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
+        path.style("opacity", 1)
           .attr("stroke-width", stroke_width_thin); 
         dot.attr("display", "none");
         cg.style("opacity", 1);
@@ -311,7 +312,7 @@ function render_linechart (contselect, raw_data, colors) {
       .attr("class", "y_axis")
       .call(yAxis)
 
-  svg.selectAll("line").style("stroke", "lightgray");
+  //svg.selectAll("line").style("stroke", "lightgray");
 
       // svg.select(".ylabel").selectAll("text").remove();
       // var ylabel = svg.select(".ylabel").selectAll("text")
@@ -404,7 +405,6 @@ function render_linechart (contselect, raw_data, colors) {
     
     //console.log(selected , num_type)
     svg.selectAll("verticalG").remove()
-    
 
     if(num_type == "By State"){
       binded_data = data.series
@@ -427,7 +427,7 @@ function render_linechart (contselect, raw_data, colors) {
     svg.selectAll("g.y_axis")
     .call(yAxis);
 
-    svg.selectAll("line").style("stroke", "lightgray");
+    //svg.selectAll("line").style("stroke", "lightgray");
 
     //console.log(data.series, us_data)
     //console.log(path.node().parentNode)
@@ -814,8 +814,9 @@ function render_linechart (contselect, raw_data, colors) {
           const i = data.dates.length-1
 
           const s = data.series.filter(d => d.code == newVal)[0] ;
-          path.attr("stroke", d => colors(d.code))
-            .style("opacity", d => d === s ? 1 : 0.2).filter(d => d === s).raise()
+          //path.attr("stroke", d => colors(d.code))
+          path.transition().duration(500).style("opacity", d => d === s ? 1 : 0.2)
+          path.filter(d => d === s).raise()
             .attr("stroke-width",d => d === s ? stroke_width_thick : stroke_width_thin).filter(d => d === s).raise();
           
           dot.attr("display", null);
@@ -826,8 +827,8 @@ function render_linechart (contselect, raw_data, colors) {
           
         }else{
           //exit_highlight()
-          path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
-          .style("opacity", 1)
+          //path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
+          path.transition().duration(500).style("opacity", 1)
           .attr("stroke-width", stroke_width_thin); 
           dot.attr("display", "none");
           cg.style("opacity", 1);
@@ -847,8 +848,8 @@ function render_linechart (contselect, raw_data, colors) {
     const s = data.series.filter(d => d.code == newVal)[0] ;
 
 
-    path.attr("stroke", d => colors(d.code))
-      .style("opacity", d => d === s ? 1 : 0.2).filter(d => d === s).raise()
+    //path.attr("stroke", d => colors(d.code))
+    path.style("opacity", d => d === s ? 1 : 0.2).filter(d => d === s).raise()
       .attr("stroke-width",d => d === s ? stroke_width_thick : stroke_width_thin).filter(d => d === s).raise();
     
     dot.attr("display", null);
@@ -929,8 +930,8 @@ function render_linechart (contselect, raw_data, colors) {
           //locked_line = ""
           console.log("unlock line!")
           hover(svg, path, selected) 
-          path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
-          .style("opacity", 1)
+          //path.style("mix-blend-mode", null).attr("stroke", d => colors(d.code))   //"multiply"
+          path.style("opacity", 1)
           .attr("stroke-width", stroke_width_thin); 
           dot.attr("display", "none");
           cg.style("opacity", 1);
@@ -961,6 +962,7 @@ function render_linechart (contselect, raw_data, colors) {
           river_selected.pair= [d.type,raw_data.dates[ii]]
           //console.log(d.type,raw_data.dates[ii])
         }
+      
 
         // blocks.selectAll("area").transition().duration(100)
         //     .attr("opacity", a => a === d ? 1.2 : 0.1)
@@ -984,7 +986,25 @@ function render_linechart (contselect, raw_data, colors) {
         //     .style("left", x + "px")
         //     .style("top", y-12 + "px");
       })
+    .on("click", function (event, d, i) {
+      //document.getElementById("selectButton").value(convers2[d.type])
+      if( d.type != convers[d3.select("#selectButton").property("value")]){
+        document.getElementById("selectButton").selectedIndex = slecI[d.type];
+        // d3.select("#selectButton")
+        //       .
+  
+        console.log(d.type, d3.select("#selectButton").property("value"))
+        d3.selectAll(".cricle").remove()
+        selectedOption = d.type
+        // run the updateChart function with this selected option
+        update(selectedOption)
+        grid_map.update_race(selectedOption)
         
+        
+      }
+
+
+    })
 
             
     .on('mouseleave', function (d, i) {
@@ -992,13 +1012,13 @@ function render_linechart (contselect, raw_data, colors) {
             .duration('100')
             .style('opacity', '1')
             .style("fill",d=>pie_color(d.type))
-        river_selected.type = ""
+        river_selected.pair = ""
             //.attr("stroke", "none");
                   //Makes the new div disappear:
         // div.transition()
         //     .duration('50')
         //     .style("opacity", 0);
-          })
+      })
             
 
 

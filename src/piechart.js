@@ -466,7 +466,7 @@ function render_pie(rdata){
         configurable:true,
         set:function(newVal){
         this._pair=newVal 
-            if(!newVal){return}
+            //if(!newVal){return}
 
 
             var data_update = prepareData (rdata, "US", newVal[1])

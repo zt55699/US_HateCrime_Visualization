@@ -39,6 +39,7 @@ class Dataset {
             //console.log(values)
             this._records = values[0];
             // from year 2000
+            console.log("Total data cases:",this._records.length)
             this._records = this._records.filter(d => d.DATA_YEAR >="2000")
             //console.log(this._records)
             this._state_groups = Array.from(d3.group(this._records, d => d.STATE_ABBR))

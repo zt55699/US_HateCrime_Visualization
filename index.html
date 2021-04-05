@@ -19,7 +19,7 @@
     </head>
     <body style="background-color:rgb(38, 35, 45);text-align:left;">
         <h1 style="color:white; font-family: 'Quicksand', sans-serif; padding-left: 80px;">
-            2000-2019 US Hate Crime Visualization (Race-Based)
+            2000-2019 US Hate Crime Dashboard (Race-Based)
         </h1>
         <p style="color:white; font-family: 'Quicksand', sans-serif; padding-left: 80px;font-size: 12px;">* Data source: The Hate Crime Statistics dataset from FBI's Uniform Crime Reporting (UCR) Program.  </p>
         <div class="grid-container">
@@ -66,11 +66,35 @@
         const allGroup = ["All", "Anti-Black", "Anti-White", "Anti-Asian", "Anti-Jewish", "Anti-Islamic",  "Anti-Hispanic"]  //"Anti-Arab",
         const convers = {"All":"total", "Anti-White":"anti_white", "Anti-Black":"anti_black", "Anti-Asian":"anti_asian",
     "Anti-Jewish": "anti_jewish", "Anti-Islamic":"anti_islamic", "Anti-Arab":"anti_arab", "Anti-Hispanic":"anti_hispanic"}
+    const slecI = {"total":0, "anti_white":2, "anti_black":1, "anti_asian":3,
+    "anti_jewish":4, "anti_islamic":5,  "anti_hispanic":6}
         const pie_color = d3.scaleOrdinal()
             .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
             .range(d3.schemeTableau10.map(c => color_adjust(c, -30)));
             //.range(["#53A663", "#D87F81", "#AE6387", "#79616F", "#7E9680", "#6AA5A9", "#5D7599"]);
 
+        const red_states = ["AL",
+                            "AK",
+                            "AZ",
+                            "AR",
+                            "GA",
+                            "ID",
+                            "KS",
+                            "KY",
+                            "LA",
+                            "MS",
+                            "MO",
+                            "MT",
+                            "NE",
+                            "ND",
+                            "OK",
+                            "SC",
+                            "SD",
+                            "TN",
+                            "TX",
+                            "UT",
+                            "WV",
+                            "WY"]
         function render_map_svg(svgselection, map_data){ 
                 svgselection.selectAll('*').remove();
                 const g = svgselection.append("g").attr("transform", "translate(25,0)");
@@ -207,10 +231,11 @@
                     var states_years = all_data.get_states_years()
 
                     var map_data = convert_map_data(states_years)
+
+                    var line_data = convert_line_data(states_years)
                     //var states_total = all_data.get_total_by_states()
                     render_map_svg(svgselection, map_data)       
 
-                    var line_data = convert_line_data(states_years)
                     linechart = render_linechart(trendselect, line_data, colors)
 
                     render_pie(line_data)
