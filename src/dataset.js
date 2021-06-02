@@ -43,8 +43,9 @@ class Dataset {
             this._records = this._records.filter(d => d.DATA_YEAR >="2000")
             //console.log(this._records)
             this._state_groups = Array.from(d3.group(this._records, d => d.STATE_ABBR))
-            //console.log(this._state_groups)
+            console.log(this._state_groups)
           });
+
         //console.log(this._state_groups)
         //this._cal_state_years()
     }
