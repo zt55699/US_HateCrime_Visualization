@@ -40,7 +40,7 @@ async function start(){
     await all_data.init()
     var delta = Date.now() -start;
     console.log("all_data.init: ", delta, " ms");
-    done_loading()
+    //done_loading();
 
     // Promise.all(()=>{
 
